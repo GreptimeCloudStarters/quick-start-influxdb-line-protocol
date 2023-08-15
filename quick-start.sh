@@ -61,6 +61,6 @@ fi
 echo Sending metrics to GreptimeCloud...
 while true
 do
-	sleep 2
+	sleep 5
 	curl -i -XPOST "https://$host/v1/influxdb/write?db=$database&u=$username&p=$password" --data-binary "$(generate_data)"
 done
