@@ -39,28 +39,30 @@ do
 done
 
 if [ -z "$host" ]; then
-	echo "-h Host is required"
-	exit 1
+	host="localhost"
 fi
 
 if [ -z "$database" ]; then
-	echo "-d Database is required"
-	exit 1
+	database="public"
 fi
 
-if [ -z "$username" ]; then
-	echo "-u Username is required"
-	exit 1
+if [[ $host == "localhost" || $host == "127.0.0.1" ]]; then
+	url="http://$host:4000/v1/influxdb/write?db=$database"
+else
+	url="https://$host/v1/influxdb/write?db=$database"
 fi
 
-if [ -z "$password" ]; then
-	echo "-p Password is required"
-	exit 1
+if [ -n "$username" ]; then
+  url="$url&u=$username"
+fi
+
+if [ -n "$password" ]; then
+  url="$url&p=$password"
 fi
 
 echo Sending metrics to GreptimeCloud...
 while true
 do
 	sleep 5
-	curl -i -XPOST "https://$host/v1/influxdb/write?db=$database&u=$username&p=$password" --data-binary "$(generate_data)"
+	curl -i -XPOST "$url" --data-binary "$(generate_data)"
 done
