@@ -60,7 +60,7 @@ if [ -n "$password" ]; then
   url="$url&p=$password"
 fi
 
-echo Sending metrics to GreptimeCloud...
+echo Sending metrics to Greptime...
 while true
 do
 	sleep 5
