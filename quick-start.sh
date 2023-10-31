@@ -28,39 +28,53 @@ monitor,host=$unameOut user_cpu=$user_cpu_util,sys_cpu=$sys_cpu_util,idle_cpu=$i
 EOF
 }
 
-while getopts h:d:u:p: flag
+while getopts h:d:u:p:s:P: flag
 do
 	case "${flag}" in
 		h) host=${OPTARG};;
 		d) database=${OPTARG};;
 		u) username=${OPTARG};;
 		p) password=${OPTARG};;
+		s) ssl_mode=${OPTARG};;
+		P) port=${OPTARG};;
 	esac
 done
 
 if [ -z "$host" ]; then
-	echo "-h Host is required"
-	exit 1
+	host="localhost"
 fi
 
 if [ -z "$database" ]; then
-	echo "-d Database is required"
-	exit 1
+	database="public"
 fi
 
-if [ -z "$username" ]; then
-	echo "-u Username is required"
-	exit 1
+if [ -z "$ssl_mode" ]; then
+	ssl_mode=true
 fi
 
-if [ -z "$password" ]; then
-	echo "-p Password is required"
-	exit 1
+if $ssl_mode; then
+	url="https://"
+else
+	url="http://"
 fi
 
-echo Sending metrics to GreptimeCloud...
+if [ -n "$port" ]; then
+	url="$url$host:$port/v1/influxdb/write?db=$database"
+else
+	url="$url$host/v1/influxdb/write?db=$database"
+fi
+
+if [ -n "$username" ]; then
+  url="$url&u=$username"
+fi
+
+if [ -n "$password" ]; then
+  url="$url&p=$password"
+fi
+
+echo Sending metrics to Greptime...
 while true
 do
 	sleep 5
-	curl -i -XPOST "https://$host/v1/influxdb/write?db=$database&u=$username&p=$password" --data-binary "$(generate_data)"
+	curl -i -XPOST "$url" --data-binary "$(generate_data)"
 done
