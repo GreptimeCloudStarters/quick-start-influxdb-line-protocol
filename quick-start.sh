@@ -28,40 +28,34 @@ monitor,host=$unameOut user_cpu=$user_cpu_util,sys_cpu=$sys_cpu_util,idle_cpu=$i
 EOF
 }
 
-while getopts h:d:u:p:s:P: flag
+while getopts e:h:d:u:p:P: flag
 do
 	case "${flag}" in
+		e) endpoint=${OPTARG};;
 		h) host=${OPTARG};;
 		d) database=${OPTARG};;
 		u) username=${OPTARG};;
 		p) password=${OPTARG};;
-		s) ssl_mode=${OPTARG};;
 		P) port=${OPTARG};;
 	esac
 done
-
-if [ -z "$host" ]; then
-	host="localhost"
-fi
 
 if [ -z "$database" ]; then
 	database="public"
 fi
 
-if [ -z "$ssl_mode" ]; then
-	ssl_mode=true
-fi
-
-if $ssl_mode; then
-	url="https://"
+if [ -n "$endpoint" ]; then
+	url="$endpoint?db=$database"
 else
-	url="http://"
-fi
+	if [ -z "$host" ]; then
+		host="localhost"
+	fi
 
-if [ -n "$port" ]; then
-	url="$url$host:$port/v1/influxdb/write?db=$database"
-else
-	url="$url$host/v1/influxdb/write?db=$database"
+	if [ -n "$port" ]; then
+		url="https://$host:$port/v1/influxdb/write?db=$database"
+	else
+		url="https://$host/v1/influxdb/write?db=$database"
+	fi
 fi
 
 if [ -n "$username" ]; then
